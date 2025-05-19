@@ -8,6 +8,10 @@
 #define MAX_SPEED_STEPS_PER_SECOND  400
 #define ONE_DEGREECE_STEPS  (ONE_TURN_STEPS/360)
 
+#define MOTION_SENSOR_PIN   PB4
+
+
+
 #define SS
 #ifdef SS
 
