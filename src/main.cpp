@@ -11,11 +11,6 @@
 #define MOTION_SENSOR_PIN   PB4
 
 
-
-#define SS
-#ifdef SS
-
-
 AccelStepper stepper0(AccelStepper::FULL4WIRE, PA3, PA2, PA1, PA0);// IN1 IN3 IN4 IN2
 AccelStepper stepper2(AccelStepper::FULL4WIRE, PA7, PA6, PA5, PA4);// IN1 IN3 IN4 IN2
 AccelStepper stepper3(AccelStepper::FULL4WIRE, PB13, PB12, PB14, PB15);// IN1 IN3 IN4 IN2
@@ -118,6 +113,30 @@ void task_stepper0(void* pdata) {
 
 
 
+#define TASK3_STK_SIZE 512
+void task_stepper1(void* pdata);
+osThreadDef(task_stepper1, osPriorityNormal, 1, TASK3_STK_SIZE);
+
+void task_stepper1(void* pdata) {
+
+  uint8_t polar;
+
+  while(1){
+
+    while(stepper1.distanceToGo()) osDelay(1);
+    polar = random();
+    polar %=2;
+
+    stepper1.setAcceleration(random(10, 200));
+
+    if(polar){
+      stepper1.move(random(ONE_TURN_STEPS>>1, ONE_TURN_STEPS*3));
+    }else{
+      stepper1.move(-random(ONE_TURN_STEPS>>1, ONE_TURN_STEPS*4));
+    }
+  }
+}
+
 
 
 
@@ -148,43 +167,15 @@ void setup() {
   osThreadCreate(osThread(task_steppers_run), NULL);  // Create task1
   osThreadCreate(osThread(task_stepper3), NULL);  // Create task1
   osThreadCreate(osThread(task_stepper2), NULL);  // Create task1
-
   osThreadCreate(osThread(task_stepper0), NULL);  // Create task1
- 
+  osThreadCreate(osThread(task_stepper1), NULL);  // Create task1
+
   osKernelStart();  // Start TOS Tiny
 
-
 }
 
 
 void loop() {
 
 }
-
-
-#endif
-
-#ifdef DD
-void setup() {
-  digitalWrite(PB4, LOW);  // sets the digital pin 13 off
-  pinMode(LED_BUILTIN, OUTPUT);
-
-}
-
-
-void loop() {
-
-  pinMode(PB4, INPUT);    // sets the digital pin 13 as output
-  digitalWrite(LED_BUILTIN, LOW);  // sets the digital pin 13 off
-
-  delay(100);            // waits for a second
-
-  pinMode(PB4, OUTPUT);    // sets the digital pin 13 as output
-  digitalWrite(LED_BUILTIN, HIGH);  // sets the digital pin 13 off
-
-  delay(100);            // waits for a second
-
-}
-
-#endif
 
