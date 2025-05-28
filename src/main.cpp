@@ -15,10 +15,10 @@
 #define SS
 #ifdef SS
 
-AccelStepper stepper1(AccelStepper::FULL4WIRE, PA7, PA6, PA5, PA4);// IN1 IN3 IN4 IN2
+AccelStepper stepper2(AccelStepper::FULL4WIRE, PA7, PA6, PA5, PA4);// IN1 IN3 IN4 IN2
 
 
-AccelStepper stepper2(AccelStepper::FULL4WIRE, PB13, PB12, PB14, PB15);// IN1 IN3 IN4 IN2
+//AccelStepper stepper2(AccelStepper::FULL4WIRE, PB13, PB12, PB14, PB15);// IN1 IN3 IN4 IN2
 AccelStepper stepper3(AccelStepper::FULL4WIRE, PB9, PB8, PB7, PB6);// IN1 IN3 IN4 IN2
 
 
@@ -40,7 +40,7 @@ osThreadDef(task2, osPriorityNormal, 1, TASK1_STK_SIZE);
 
 void task2(void* pdata) {
   while (1) {
-        stepper1.run();
+    //stepper1.run();
 
     stepper2.run();
     stepper3.run();
