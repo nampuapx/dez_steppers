@@ -18,8 +18,8 @@
 AccelStepper stepper2(AccelStepper::FULL4WIRE, PA7, PA6, PA5, PA4);// IN1 IN3 IN4 IN2
 
 
-AccelStepper stepper1(AccelStepper::FULL4WIRE, PB13, PB12, PB14, PB15);// IN1 IN3 IN4 IN2
-AccelStepper stepper3(AccelStepper::FULL4WIRE, PB9, PB8, PB7, PB6);// IN1 IN3 IN4 IN2
+AccelStepper stepper3(AccelStepper::FULL4WIRE, PB13, PB12, PB14, PB15);// IN1 IN3 IN4 IN2
+AccelStepper stepper1(AccelStepper::FULL4WIRE, PB9, PB8, PB7, PB6);// IN1 IN3 IN4 IN2
 
 
 #define TASK1_STK_SIZE 512
@@ -38,26 +38,24 @@ void task1(void* pdata) {
 
 
 #define TASK2_STK_SIZE 512
-void task2(void* pdata);
-osThreadDef(task2, osPriorityNormal, 1, TASK1_STK_SIZE);
+void task_steppers_run(void* pdata);
+osThreadDef(task_steppers_run, osPriorityNormal, 1, TASK1_STK_SIZE);
 
-void task2(void* pdata) {
+void task_steppers_run(void* pdata) {
   while (1) {
     stepper1.run();
     stepper2.run();
     stepper3.run();
 
-   //  if (stepper3.distanceToGo() == 0)
-	 //     stepper3.moveTo(-stepper3.currentPosition());
     osDelay(1);
   }
 }
 
 #define TASK3_STK_SIZE 512
-void task3(void* pdata);
-osThreadDef(task3, osPriorityNormal, 1, TASK3_STK_SIZE);
+void task_stepper3(void* pdata);
+osThreadDef(task_stepper3, osPriorityNormal, 1, TASK3_STK_SIZE);
 
-void task3(void* pdata) {
+void task_stepper3(void* pdata) {
   while(1){
 
     while(stepper3.distanceToGo()) osDelay(1);
@@ -66,14 +64,33 @@ void task3(void* pdata) {
     while(stepper3.distanceToGo()) osDelay(1);
     stepper3.move(-ONE_TURN_STEPS*1);
 
-
- //   if (stepper3.distanceToGo() == 0)
-   //     stepper3.moveTo(-stepper3.currentPosition());
- 
-  //  osDelay(1);
   }
 }
 
+#define TASK3_STK_SIZE 512
+void task_stepper2(void* pdata);
+osThreadDef(task_stepper2, osPriorityNormal, 1, TASK3_STK_SIZE);
+
+void task_stepper2(void* pdata) {
+
+  uint8_t polar;
+
+  while(1){
+
+    while(stepper2.distanceToGo()) osDelay(1);
+    polar = random();
+    polar %=2;
+
+    stepper2.setAcceleration(random(10, 200));
+
+    if(polar){
+      stepper2.move(random(ONE_TURN_STEPS>>1, ONE_TURN_STEPS*3));
+    }else{
+      stepper2.move(-random(ONE_TURN_STEPS>>1, ONE_TURN_STEPS*4));
+
+    }
+  }
+}
 
 
 
@@ -92,8 +109,9 @@ void setup() {
   
   osKernelInitialize();                   // TOS Tiny kernel initialize
   osThreadCreate(osThread(task1), NULL);  // Create task1
-  osThreadCreate(osThread(task2), NULL);  // Create task1
-  osThreadCreate(osThread(task3), NULL);  // Create task1
+  osThreadCreate(osThread(task_steppers_run), NULL);  // Create task1
+  osThreadCreate(osThread(task_stepper3), NULL);  // Create task1
+  osThreadCreate(osThread(task_stepper2), NULL);  // Create task1
 
   osKernelStart();  // Start TOS Tiny
 
