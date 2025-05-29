@@ -3,6 +3,7 @@
 #include "cmsis_os.h"
 
 
+#define CLOUDS_MOTION_TIME  30000
 
 #define ONE_TURN_STEPS 2048
 #define MAX_SPEED_STEPS_PER_SECOND  400
@@ -11,17 +12,74 @@
 #define MOTION_SENSOR_PIN   PB4
 
 
+#define STEPPER1_IN1_PIN  PA7
+#define STEPPER1_IN2_PIN  PA4
+#define STEPPER1_IN3_PIN  PA6
+#define STEPPER1_IN4_PIN  PA5
+
+#define STEPPER2_IN1_PIN  PB9
+#define STEPPER2_IN2_PIN  PB6
+#define STEPPER2_IN3_PIN  PB8
+#define STEPPER2_IN4_PIN  PB7
+
+#define STEPPER3_IN1_PIN  PB13
+#define STEPPER3_IN2_PIN  PB15
+#define STEPPER3_IN3_PIN  PB12
+#define STEPPER3_IN4_PIN  PB14
+
+#define STEPPER0_IN1_PIN  PA3
+#define STEPPER0_IN2_PIN  PA0
+#define STEPPER0_IN3_PIN  PA2
+#define STEPPER0_IN4_PIN  PA1
 
 
+void steppers_lines_off(void){
+  digitalWrite(STEPPER1_IN1_PIN, LOW);
+  digitalWrite(STEPPER1_IN2_PIN, LOW);
+  digitalWrite(STEPPER1_IN3_PIN, LOW);
+  digitalWrite(STEPPER1_IN4_PIN, LOW);
+
+  digitalWrite(STEPPER2_IN1_PIN, LOW);
+  digitalWrite(STEPPER2_IN2_PIN, LOW);
+  digitalWrite(STEPPER2_IN3_PIN, LOW);
+  digitalWrite(STEPPER2_IN4_PIN, LOW);
+
+  digitalWrite(STEPPER3_IN1_PIN, LOW);
+  digitalWrite(STEPPER3_IN2_PIN, LOW);
+  digitalWrite(STEPPER3_IN3_PIN, LOW);
+  digitalWrite(STEPPER3_IN4_PIN, LOW);
+ 
+  digitalWrite(STEPPER0_IN1_PIN, LOW);
+  digitalWrite(STEPPER0_IN2_PIN, LOW);
+  digitalWrite(STEPPER0_IN3_PIN, LOW);
+  digitalWrite(STEPPER0_IN4_PIN, LOW);
+  
+}
 
 
 
 volatile uint8_t motion_status = 0;
 
-AccelStepper stepper0(AccelStepper::FULL4WIRE, PA3, PA2, PA1, PA0);// IN1 IN3 IN4 IN2
-AccelStepper stepper1(AccelStepper::FULL4WIRE, PA7, PA6, PA5, PA4);// IN1 IN3 IN4 IN2
-AccelStepper stepper3(AccelStepper::FULL4WIRE, PB13, PB12, PB14, PB15);// IN1 IN3 IN4 IN2
-AccelStepper stepper2(AccelStepper::FULL4WIRE, PB9, PB8, PB7, PB6);// IN1 IN3 IN4 IN2
+AccelStepper stepper0(AccelStepper::FULL4WIRE, 
+                                        STEPPER0_IN1_PIN, 
+                                        STEPPER0_IN3_PIN, 
+                                        STEPPER0_IN4_PIN, 
+                                        STEPPER0_IN2_PIN);// IN1 IN3 IN4 IN2
+AccelStepper stepper1(AccelStepper::FULL4WIRE, 
+                                        STEPPER1_IN1_PIN, 
+                                        STEPPER1_IN3_PIN, 
+                                        STEPPER1_IN4_PIN, 
+                                        STEPPER1_IN2_PIN);// IN1 IN3 IN4 IN2
+AccelStepper stepper3(AccelStepper::FULL4WIRE, 
+                                        STEPPER3_IN1_PIN, 
+                                        STEPPER3_IN3_PIN, 
+                                        STEPPER3_IN4_PIN, 
+                                        STEPPER3_IN2_PIN);// IN1 IN3 IN4 IN2
+AccelStepper stepper2(AccelStepper::FULL4WIRE, 
+                                        STEPPER2_IN1_PIN, 
+                                        STEPPER2_IN3_PIN, 
+                                        STEPPER2_IN4_PIN, 
+                                        STEPPER2_IN2_PIN);// IN1 IN3 IN4 IN2
 
 
 #define TASK1_STK_SIZE 512
@@ -35,12 +93,12 @@ void task1(void* pdata) {
     if(digitalRead(MOTION_SENSOR_PIN)){
         motion_status = 5;
         digitalWrite(LED_BUILTIN, LOW);
-        osDelay(5000);
+        osDelay(CLOUDS_MOTION_TIME);
         while(digitalRead(MOTION_SENSOR_PIN)){
           osDelay(10);
         }
         motion_status = 0;
-    
+        steppers_lines_off();
     }
     digitalToggle(LED_BUILTIN);
     osDelay(80);
