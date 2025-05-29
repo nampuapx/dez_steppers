@@ -11,6 +11,13 @@
 #define MOTION_SENSOR_PIN   PB4
 
 
+
+
+
+
+
+volatile uint8_t motion_status = 0;
+
 AccelStepper stepper0(AccelStepper::FULL4WIRE, PA3, PA2, PA1, PA0);// IN1 IN3 IN4 IN2
 AccelStepper stepper1(AccelStepper::FULL4WIRE, PA7, PA6, PA5, PA4);// IN1 IN3 IN4 IN2
 AccelStepper stepper3(AccelStepper::FULL4WIRE, PB13, PB12, PB14, PB15);// IN1 IN3 IN4 IN2
@@ -24,6 +31,17 @@ osThreadDef(task1, osPriorityNormal, 1, TASK1_STK_SIZE);
 void task1(void* pdata) {
   int count = 1;
   while (1) {
+
+    if(digitalRead(MOTION_SENSOR_PIN)){
+        motion_status = 5;
+        digitalWrite(LED_BUILTIN, LOW);
+        osDelay(5000);
+        while(digitalRead(MOTION_SENSOR_PIN)){
+          osDelay(10);
+        }
+        motion_status = 0;
+    
+    }
     digitalToggle(LED_BUILTIN);
     osDelay(80);
   }
@@ -38,11 +56,12 @@ osThreadDef(task_steppers_run, osPriorityNormal, 1, TASK1_STK_SIZE);
 
 void task_steppers_run(void* pdata) {
   while (1) {
-    stepper0.run();
-    stepper1.run();
-    stepper2.run();
-    stepper3.run();
-
+    if(motion_status){
+      stepper0.run();
+      stepper1.run();
+      stepper2.run();
+      stepper3.run();
+    }
     osDelay(1);
   }
 }
